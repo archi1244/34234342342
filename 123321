@@ -1,0 +1,119 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <Windows.h>
+
+using namespace std;
+
+struct Product {
+    string name;
+    float price;
+    int quantity;
+};
+
+void displayCatalog(const vector<Product>& catalog) {
+    for (int i = 0; i < catalog.size(); ++i) {
+        cout << i + 1 << ". " << catalog[i].name << " - Цена: " << catalog[i].price << ", Количество: " << catalog[i].quantity << endl;
+    }
+    cout << "-------------------------------------------" << endl;
+}
+
+void saveToFile(const vector<Product>& catalog, const string& filename) {
+    ofstream outFile(filename);
+    for (const auto product : catalog) {
+        outFile << product.name << " " << product.price << " " << product.quantity << endl;
+    }
+    cout << "-------------------------------------------" << endl;
+}
+
+void addProduct(vector<Product>& catalog, const string& filename) {
+    Product newProduct;
+    cout << "Название товара: " << endl;
+    cin >> newProduct.name;
+    cout << "Цена товара: " << endl;
+    cin >> newProduct.price;
+    cout << "Количество товара: " << endl;
+    cin >> newProduct.quantity;
+    catalog.push_back(newProduct);
+    saveToFile(catalog, filename);
+    cout << "Товар добавлен и каталог обновлен." << endl;
+    cout << "-------------------------------------------" << endl;
+    system("cls");
+}
+void buyProducts(vector<Product>& catalog, const string filename) {
+    if (catalog.empty()) {
+        cout << "Каталог пуст." << endl;
+        return;
+    }
+    char continueBuying = 'y';
+    while (continueBuying == 'y' || continueBuying == 'Y') {
+        displayCatalog(catalog);
+        int choice, quantity;
+        cout << "Введите номер товара: " << endl;
+        cin >> choice;
+        if (choice < 1 || choice > catalog.size()) {
+            cout << "Неверный выбор!" << endl;
+            continue;
+        }
+        cout << "Введите количество: " << endl;
+        cin >> quantity;
+        if (quantity > catalog[choice - 1].quantity) {
+            cout << "Недостаточно товара!" << endl;
+        }
+        else {
+            catalog[choice - 1].quantity -= quantity;
+            cout << "Вы купили " << quantity << " " << catalog[choice - 1].name << " на сумму " << quantity * catalog[choice - 1].price << "!" << endl;
+            if (catalog[choice - 1].quantity == 0) {
+                catalog.erase(catalog.begin() + (choice - 1));
+            }
+            saveToFile(catalog, filename);
+        }
+        cout << "Хотите купить еще? (y/n): " << endl;
+        cin >> continueBuying;
+    }
+}
+
+
+void loadFromFile(vector<Product>& catalog, const string& filename) {
+    ifstream inFile(filename);
+    Product product;
+    while (inFile >> product.name >> product.price >> product.quantity) {
+        catalog.push_back(product);
+    }
+}
+
+int main() {
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
+    vector<Product> catalog;
+    const string filename = "catalog.txt";
+    loadFromFile(catalog, filename);
+    int choice;
+    do {
+        cout << "1. Показать каталог" << endl;
+        cout << "2. Добавить товар" << endl;
+        cout << "3. Купить товары" << endl;
+        cout << "4. Сохранить и выйти" << endl;
+        cout << "Ваш выбор: " << endl;
+        cin >> choice;
+        switch (choice) {
+        case 1:
+            displayCatalog(catalog);
+            break;
+        case 2:
+            addProduct(catalog, filename);
+            break;
+        case 3:
+            buyProducts(catalog, filename);
+            break;
+        case 4:
+            saveToFile(catalog, filename);
+            cout << "Выход." << endl;
+            break;
+        default:
+            cout << "Неверный выбор." << endl;
+        }
+    } while (choice != 4);
+    return 0;
+}
