@@ -1,0 +1,5 @@
+Модули
+======
+
+.. automodule:: calculator
+   :members:
